@@ -46,19 +46,20 @@ class SentDebias:
         bias_direction = torch.load(bias_direction_path)
         kwargs["bias_direction"] = bias_direction
         
+        m = ''
         if self.args['model'] == 'BertModel':
-            model = 'SentenceDebiasBertModel'
+            m = 'SentenceDebiasBertModel'
         elif self.args['model'] == 'AlbertModel':
-            model = 'SentenceDebiasAlbertModel'
+            m = 'SentenceDebiasAlbertModel'
         elif self.args['model'] == 'RobertaModel':
-            model = 'SentenceDebiasRobertaModel'
+            m = 'SentenceDebiasRobertaModel'
         elif self.args['model'] == 'GPT2Model':
-            model = 'SentenceDebiasGPT2Model'
+            m = 'SentenceDebiasGPT2Model'
         else:
             raise ValueError('Model not implemented')
         
         # Load model and tokenizer. `load_path` can be used to override `model_name_or_path`.
-        model = getattr(models, 'SentenceDebiasBertModel')(self.args['model_name_or_path'], **kwargs)
+        model = getattr(models, m)(self.args['model_name_or_path'], **kwargs)
         
 
         if save == True:
