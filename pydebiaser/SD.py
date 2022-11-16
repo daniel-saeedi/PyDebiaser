@@ -37,6 +37,7 @@ class SentDebias:
         print("Done!")
     # path: where do you wanna save it
     def debias(self,save = False,path = './'):
+        print('Computing bias subspaces...')
         bias_direction_path = self.compute_bias_subspace()
         
         print('Saving the debiased model...')
