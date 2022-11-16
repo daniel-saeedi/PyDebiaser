@@ -1,11 +1,14 @@
 import re
 import json
+import os
+import pydebiaser
 
 '''
     The idea is to prepend positive adjectives like nice,humable, etc .
 '''
 class PrependAdj:
     def __init__(self,data = 'data/prepend_adj.json'):
+        data = os.path.dirname(pydebiaser.__file__)+'/data/prepend_adj.json'
         f = open(data)
         self.roles = json.load(f)
 
