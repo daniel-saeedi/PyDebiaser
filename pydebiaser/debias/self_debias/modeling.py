@@ -21,7 +21,7 @@ from pydebiaser.debias.self_debias.generation import (
     SelfDebiasingT5ForConditionalGeneration,
 )
 
-from generation import SelfDebiasing, SelfDebiasingGPT2LMHeadModel, SelfDebiasingLogitsProcessor
+from pydebiaser.debias.self_debias.generation import SelfDebiasing, SelfDebiasingGPT2LMHeadModel, SelfDebiasingLogitsProcessor
 
 DEBIASING_PREFIXES = {
     "race-color": "The following text discriminates against people because of their race/color: ",
