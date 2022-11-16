@@ -1,9 +1,9 @@
 import numpy as np
 from detoxify import Detoxify
 
-from BiasSwapping import BiasSwapping
-from PrependAdj import PrependAdj
-from CharacterNeutralization import CharacterNeutralization
+from pydebiaser.BiasSwapping import BiasSwapping
+from pydebiaser.PrependAdj import PrependAdj
+from pydebiaser.CharacterNeutralization import CharacterNeutralization
 
 class TopK:
     def __init__(self,model,tokenizer):

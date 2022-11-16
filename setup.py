@@ -15,7 +15,7 @@ setup(
     python_requires='>=3.7, <4',
     packages=find_packages(include=['pydebiaser', 'pydebiaser.*']),
     install_requires=[
-        'detoxifier >= 0.2',
+        'detoxify >= 0.2',
         "transformers != 4.18.0",
         "torch >= 1.7.0",
         "sentencepiece >= 0.1.94",
