@@ -1,14 +1,17 @@
-from setuptools import setup
+from setuptools import find_packages, setup
 
-setup
-(
-    name='PyDebiaser',
-    version='1.0',
-    author='Daniel Saeedi & Kunwar M. Saaim',
-    description='A debiasing library for Transformers models',
-    long_description='A debiasing library for Transformers models',
-    url='https://github.com/daniel-saeedi/PyDebiaser',
-    keywords='debiaser, hard-debias, sent-debias, self-debias, top-k',
+with open("README.md") as fh:
+    long_description = fh.read()
+
+setup(
+    name="PyDebiaser",
+    version="1.0",
+    description="A python debiasing library for Transformers models",
+    long_description=long_description,
+    long_description_content_type="text/markdown",
+    author="Daniel Saeedi & Kunwar M. Saaim",
+    author_email="saeedi.danial@gmail.com",
+    url="https://github.com/daniel-saeedi/PyDebiaser",
     python_requires='>=3.7, <4',
     packages=find_packages(include=['PyDebiaser', 'PyDebiaser.*']),
     install_requires=[
