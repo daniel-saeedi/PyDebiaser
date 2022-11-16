@@ -151,14 +151,4 @@ debiaser.generate(prompt,max_len)
 ```
 
 
-## Acknowledgements
-We want to convey our heartfelt gratitude to
-Prof. Yadollah Yaghoobzadeh from the University
-of Tehran, who provided us with invaluable advice
-during our research. We would also like to thank
-Ali Edalat from the University of Tehran, who provided
-us with the initial proposals for resolving the
-dataset’s imbalance problem.
-
-
 
