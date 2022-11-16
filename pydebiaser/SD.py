@@ -1,6 +1,6 @@
 import torch
 import transformers
-import os
+import pydebiaser, os
 import wget
 from pathlib import Path
 
@@ -25,12 +25,12 @@ class SentDebias:
     '''
     def __init__(self,sent_debias_dir,model,model_name_or_path,bias_type,batch_size = 32):
         self.args = {}
-        self.args['persistent_dir'] = os.getcwd()
+        self.args['persistent_dir'] = os.path.dirname(pydebiaser.__file__)
         self.args['model'] = model
         self.args['model_name_or_path'] = model_name_or_path
         self.args['bias_type'] = bias_type
         self.args['batch_size'] = batch_size
-
+        
         data_dir = self.args['persistent_dir']+"/data/text/"
         Path(data_dir).mkdir(parents=True, exist_ok=True)
         filename = wget.download("https://cdn-lfs.huggingface.co/repos/d7/59/d759285e6328f18b6f31b4bad1fd24ae2073290c3eefe9b04ed144337347216d/609af0c42b9a6df2ca55a77654e0e849c8939d74fc9a3b89e7a9386138967b76?response-content-disposition=attachment%3B%20filename%3D%22wikipedia-2.5.txt%22&Expires=1668878991&Policy=eyJTdGF0ZW1lbnQiOlt7IlJlc291cmNlIjoiaHR0cHM6Ly9jZG4tbGZzLmh1Z2dpbmdmYWNlLmNvL3JlcG9zL2Q3LzU5L2Q3NTkyODVlNjMyOGYxOGI2ZjMxYjRiYWQxZmQyNGFlMjA3MzI5MGMzZWVmZTliMDRlZDE0NDMzNzM0NzIxNmQvNjA5YWYwYzQyYjlhNmRmMmNhNTVhNzc2NTRlMGU4NDljODkzOWQ3NGZjOWEzYjg5ZTdhOTM4NjEzODk2N2I3Nj9yZXNwb25zZS1jb250ZW50LWRpc3Bvc2l0aW9uPWF0dGFjaG1lbnQlM0IlMjBmaWxlbmFtZSUzRCUyMndpa2lwZWRpYS0yLjUudHh0JTIyIiwiQ29uZGl0aW9uIjp7IkRhdGVMZXNzVGhhbiI6eyJBV1M6RXBvY2hUaW1lIjoxNjY4ODc4OTkxfX19XX0_&Signature=YpeHtyhWJPncf2nSA0fMt5g-Cu9mM6R1QgKqNCarqFTucT5gFAtHl4NewRja3HdOnXKEFml-q1jMuk-~YA2~gkSnOJTaRJ78FJP024SB0iSR9Y-kBxt986fwlFMTYUicYnK3nNyXTdhbqC-~bIV3bzTwJfpkYLlsdc1j88SDKtkTAONij9oCkVDYTjanldbFxfHCCti2yrda9D2lGRcN7fX2KuDP5AYR6MOoP7PS0daPElxNGO0NdOp2aWiYjbm7yaNh2T8WB-HIyooroT69mmtBXhNuZGpAdqJeJi~xq3ZdkapkpUOa0ABWftf5h5B~MrxgH4KBIYtvbz8XDgsSqQ__&Key-Pair-Id=KVTP0A1DKRTAX", out=data_dir)
