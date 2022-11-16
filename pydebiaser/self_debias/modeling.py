@@ -1,28 +1,49 @@
 from abc import ABC, abstractmethod
+from tkinter import SE
 from typing import List, Optional, Tuple
 
 import torch
 from torch.nn import CrossEntropyLoss
+# from noconflict import makecls
+
 from transformers import (
-    T5Tokenizer,
-    GPT2Tokenizer,
     PreTrainedTokenizer,
     PreTrainedModel,
-    AutoTokenizer,
     AutoModelForMaskedLM,
-    RobertaForMaskedLM,
-    BertForMaskedLM,
-    AlbertForMaskedLM,
+    AutoTokenizer,
+    AutoModelForCausalLM,
+    GPT2LMHeadModel,
+    GPT2Tokenizer,
 )
 
-from pydebiaser.debias.self_debias.generation import (
-    SelfDebiasingLogitsProcessor,
-    SelfDebiasingGPT2LMHeadModel,
-    SelfDebiasingT5ForConditionalGeneration,
+from transformers.generation_utils import (
+    GenerationMixin,
+    SampleOutput,
+    SampleEncoderDecoderOutput,
+    SampleDecoderOnlyOutput,
 )
 
+from generation import SelfDebiasing, SelfDebiasingGPT2LMHeadModel, SelfDebiasingLogitsProcessor
 
-def get_top_k_tokens(logits: torch.Tensor, tokenizer: PreTrainedTokenizer, k: int = 5):
+DEBIASING_PREFIXES = {
+    "race-color": "The following text discriminates against people because of their race/color: ",
+    "gender": "The following text discriminates against people because of their gender: ",
+    "socioeconomic": "The following text discriminates against people because of their socioeconomic status/occupation: ",
+    "sexual-orientation": "The following text discriminates against people because of their sexual orientiation: ",
+    "religion": "The following text discriminates against people because of their religion: ",
+    "age": "The following text discriminates against people because of their age: ",
+    "nationality": "The following text discriminates against people because of their nationality: ",
+    "disability": "The following text discriminates against people because of their disability: ",
+    "physical-appearance": "The following text discriminates against people because of their physical appearance: ",
+}
+
+
+def get_top_k_tokens(
+    logits: torch.Tensor, 
+    tokenizer: PreTrainedTokenizer, 
+    k: int = 5
+):
+
     values, indices = torch.topk(logits, k, dim=-1)
     if len(logits.shape) == 2:
         assert logits.shape[0] == 1
@@ -30,7 +51,7 @@ def get_top_k_tokens(logits: torch.Tensor, tokenizer: PreTrainedTokenizer, k: in
     return tokenizer.convert_ids_to_tokens(indices), values
 
 
-class MaskedLMWrapper(ABC):
+class SelfDebiasMaskedLM(ABC):
     """
     This class represents a wrapper for a masked language model that provides the ability to perform self-debiasing for sentences with
     a single masked token.
@@ -392,6 +413,257 @@ class T5Wrapper(GenerativeLMWrapper):
         raise NotImplementedError()
 
 
+class SelfDebiasGenerativeLM(GenerativeLMWrapper):
+    def __init__(self,model_class, model_name_or_path: str = "gpt2", use_cuda: bool = True):
+        """
+        :param model_name: the name of the pretrained Bloom model (default: "bigscience/bloom-350m")
+        :param use_cuda: whether to use CUDA
+        """
+        super().__init__(use_cuda=use_cuda)
+        self._tokenizer = AutoTokenizer.from_pretrained(model_name_or_path)
+        # base_class = AutoModelForCausalLM.from_pretrained(model_name)
+        SelfDebiasingModelForCausalLM = type("SelfDebiasingModelForCausalLM", (SelfDebiasing, model_class),{})
+        self._model = SelfDebiasingModelForCausalLM.from_pretrained(model_name_or_path)
+        # self._model = SelfDebiasing.from_pretrained(model_name)
+        if use_cuda:
+            # self._model.parallelize()
+            pass
+        self._model.to("cuda" if torch.cuda.is_available() else "cpu")
+
+        self._tokenizer.pad_token = self._tokenizer.eos_token
+        self._model.config.pad_token_id = self._tokenizer.eos_token_id
+
+    def query_model_batch(self, input_texts: List[str]):
+        inputs = self._tokenizer.batch_encode_plus(
+            input_texts, padding=True, return_tensors="pt"
+        )
+        inputs = {key: val.to(self._device) for key, val in inputs.items()}
+        output_indices = inputs["attention_mask"].sum(dim=1) - 1
+        output = self._model(**inputs)["logits"]
+        return torch.stack(
+            [
+                output[example_idx, last_word_idx, :]
+                for example_idx, last_word_idx in enumerate(output_indices)
+            ]
+        )
+
+    def generate(self, input_text: str, **kwargs):
+        input_ids = self._tokenizer.encode(input_text, return_tensors="pt").to(
+            self._device
+        )
+        output_ids = self._model.generate(input_ids, **kwargs)[0]
+        return self._tokenizer.decode(output_ids)
+
+    def generate_self_debiasing(
+        self,
+        input_texts: List[str],
+        debiasing_prefixe: str,
+        decay_constant: float = 50,
+        epsilon: float = 0.01,
+        debug: bool = False,
+        min_length: int = None,
+        max_length: int = None,
+        **kwargs,
+    ) -> List[str]:
+
+        debiasing_prefixes = [DEBIASING_PREFIXES[debiasing_prefixe]]
+        self._model.init_logits_processor(
+            num_debiasing_prefixes=len(debiasing_prefixes),
+            decay_constant=decay_constant,
+            epsilon=epsilon,
+            debug=debug,
+            tokenizer=self._tokenizer,
+        )
+        inputs = input_texts.copy()
+        for debiasing_prefix in debiasing_prefixes:
+            for input_text in input_texts:
+                inputs += [debiasing_prefix + input_text]
+
+        inputs = self._tokenizer.batch_encode_plus(
+            inputs, padding=True, return_tensors="pt"
+        )
+        inputs["attention_mask"] = torch.flip(inputs["attention_mask"], dims=[1])
+        shifts = inputs["attention_mask"].shape[-1] - inputs["attention_mask"].sum(
+            dim=-1
+        )
+        for batch_idx in range(inputs["input_ids"].shape[0]):
+            inputs["input_ids"][batch_idx] = inputs["input_ids"][batch_idx].roll(
+                shifts[batch_idx].item()
+            )
+
+        inputs = {k: v.to(self._device) for k, v in inputs.items()}
+        input_length = inputs["input_ids"].shape[1]
+        if min_length is not None:
+            min_length = min_length + input_length
+        if max_length is not None:
+            max_length = max_length + input_length
+
+        output_ids = self._model.generate(
+            **inputs, min_length=min_length, max_length=max_length, **kwargs
+        )
+
+        batch_size = output_ids.shape[0] // (1 + len(debiasing_prefixes))
+        output_ids = output_ids[:batch_size, inputs["input_ids"].shape[1] :]
+        return self._tokenizer.batch_decode(output_ids)
+
+    def compute_loss(
+        self, input_ids: torch.LongTensor, labels: torch.LongTensor
+    ) -> torch.Tensor:
+        outputs = self._model(input_ids, labels=labels)
+        lm_logits = outputs[1]
+
+        # Shift so that tokens < n predict n
+        shift_logits = lm_logits[..., :-1, :].contiguous()
+        shift_labels = labels[..., 1:].contiguous()
+        # Flatten the tokens
+        loss_fct = CrossEntropyLoss()
+        loss = loss_fct(
+            shift_logits.view(-1, shift_logits.size(-1)), shift_labels.view(-1)
+        )
+        return loss
+
+    def compute_loss_self_debiasing(self, input_ids: torch.Tensor, debiasing_prefixes: List[str], decay_constant: float = 50, epsilon: float = 0.01, debug: bool = False) -> torch.Tensor:
+
+        self._device = "cuda"
+
+        self._model.init_logits_processor(
+            num_debiasing_prefixes=len(debiasing_prefixes),
+            decay_constant=decay_constant,
+            epsilon=epsilon,
+            debug=debug,
+            tokenizer=self._tokenizer,
+        )
+
+        input_prefixes = [""] + debiasing_prefixes
+        input_prefixes = self._tokenizer.batch_encode_plus(
+            input_prefixes, padding=True, return_tensors="pt"
+        )
+        input_prefixes["attention_mask"] = torch.flip(
+            input_prefixes["attention_mask"], dims=[1]
+        )
+
+        shifts = input_prefixes["attention_mask"].shape[-1] - input_prefixes[
+            "attention_mask"
+        ].sum(dim=-1)
+        for batch_idx in range(input_prefixes["input_ids"].shape[0]):
+            input_prefixes["input_ids"][batch_idx] = input_prefixes["input_ids"][
+                batch_idx
+            ].roll(shifts[batch_idx].item())
+
+        input_prefixes = {k: v.to(self._device) for k, v in input_prefixes.items()}
+
+        input_ids_repeated = input_ids.repeat(len(debiasing_prefixes) + 1, 1)
+        attention_mask = torch.ones_like(input_ids_repeated)
+
+        attention_mask = torch.cat(
+            [input_prefixes["attention_mask"], attention_mask], dim=-1
+        )
+        input_ids_repeated = torch.cat(
+            [input_prefixes["input_ids"], input_ids_repeated], dim=-1
+        )
+
+        position_ids = attention_mask.long().cumsum(-1) - 1
+        position_ids.masked_fill_(attention_mask == 0, 1)
+
+        outputs = self._model(
+            input_ids=input_ids_repeated,
+            attention_mask=attention_mask,
+            position_ids=position_ids,
+        )
+        lm_logits = outputs["logits"]
+
+        for idx in range(lm_logits.shape[1]):
+            # === HERE ===
+            lm_logits[:, idx, :] = self._model.logits_processor(
+                input_ids=None, scores=lm_logits[:, idx, :]
+            )
+        return lm_logits, input_ids_repeated
+
+    def compute_loss_self_debiasing_perplexity(
+        self,
+        input_ids: torch.Tensor,
+        trg_len: int,
+        debiasing_prefixes: List[str],
+        decay_constant: float = 50,
+        epsilon: float = 0.01,
+        debug: bool = False,
+    ) -> torch.Tensor:
+
+        self._device = "cuda"
+
+        self._model.init_logits_processor(
+            num_debiasing_prefixes=len(debiasing_prefixes),
+            decay_constant=decay_constant,
+            epsilon=epsilon,
+            debug=debug,
+            tokenizer=self._tokenizer,
+        )
+
+        input_prefixes = [""] + debiasing_prefixes
+        input_prefixes = self._tokenizer.batch_encode_plus(
+            input_prefixes, padding=True, return_tensors="pt"
+        )
+        input_prefixes["attention_mask"] = torch.flip(
+            input_prefixes["attention_mask"], dims=[1]
+        )
+
+        shifts = input_prefixes["attention_mask"].shape[-1] - input_prefixes[
+            "attention_mask"
+        ].sum(dim=-1)
+        for batch_idx in range(input_prefixes["input_ids"].shape[0]):
+            input_prefixes["input_ids"][batch_idx] = input_prefixes["input_ids"][
+                batch_idx
+            ].roll(shifts[batch_idx].item())
+
+        input_prefixes = {k: v.to(self._device) for k, v in input_prefixes.items()}
+
+        input_ids_repeated = input_ids.repeat(len(debiasing_prefixes) + 1, 1)
+        attention_mask = torch.ones_like(input_ids_repeated)
+
+        attention_mask = torch.cat(
+            [input_prefixes["attention_mask"], attention_mask], dim=-1
+        )
+        input_ids_repeated = torch.cat(
+            [input_prefixes["input_ids"], input_ids_repeated], dim=-1
+        )
+
+        # === Only comment when used for non-perplexity experiments ===
+        target_ids = input_ids_repeated.clone()
+        trg_len += shifts[0]
+        target_ids[:, :-trg_len] = -100
+        # === Only comment when used for non-perplexity experiments ===
+
+        position_ids = attention_mask.long().cumsum(-1) - 1
+        position_ids.masked_fill_(attention_mask == 0, 1)
+
+        outputs = self._model(
+            input_ids=input_ids_repeated,
+            attention_mask=attention_mask,
+            position_ids=position_ids,
+        )
+        lm_logits = outputs["logits"]
+
+        for idx in range(lm_logits.shape[1]):
+            # === HERE ===
+            lm_logits[:, idx, :] = self._model.logits_processor(
+                input_ids=None, scores=lm_logits[:, idx, :]
+            )
+
+        batch_size = lm_logits.shape[0] // (1 + len(debiasing_prefixes))
+        lm_logits = lm_logits[:batch_size, shifts[0] :, :]
+        target_ids = target_ids[:batch_size, shifts[0] :]
+
+        # Shift so that tokens < n predict n
+        shift_logits = lm_logits[..., :-1, :].contiguous()
+        shift_labels = target_ids[..., 1:].contiguous()
+        # Flatten the tokens
+        loss_fct = CrossEntropyLoss()
+        loss = loss_fct(
+            shift_logits.view(-1, shift_logits.size(-1)), shift_labels.view(-1)
+        )
+        return loss
+
+
 class GPT2Wrapper(GenerativeLMWrapper):
     def __init__(self, model_name: str = "gpt2-xl", use_cuda: bool = True):
         """
@@ -499,19 +771,18 @@ class GPT2Wrapper(GenerativeLMWrapper):
         )
         return loss
 
-    def compute_loss_self_debiasing(
-        self,
-        input_ids: torch.Tensor,
-        trg_len: int,
-        debiasing_prefixes: List[str],
-        decay_constant: float = 50,
-        epsilon: float = 0.01,
-        debug: bool = False,
-    ) -> torch.Tensor:
+    # def compute_loss_self_debiasing(
+    #     self,
+    #     input_ids: torch.Tensor,
+    #     trg_len: int,
+    #     debiasing_prefixes: List[str],
+    #     decay_constant: float = 50,
+    #     epsilon: float = 0.01,
+    #     debug: bool = False,
+    # ) -> torch.Tensor:
 
         # === When used for non-perplexity experiments === #
-        # def compute_loss_self_debiasing(self, input_ids: torch.Tensor, debiasing_prefixes: List[str], decay_constant: float = 50,
-        # epsilon: float = 0.01, debug: bool = False) -> torch.Tensor:
+    def compute_loss_self_debiasing(self, input_ids: torch.Tensor, debiasing_prefixes: List[str], decay_constant: float = 50, epsilon: float = 0.01, debug: bool = False) -> torch.Tensor:
         # === When used for non-perplexity experiments === #
 
         # self._device = "cuda"
@@ -554,9 +825,9 @@ class GPT2Wrapper(GenerativeLMWrapper):
         )
 
         # === Only comment when used for non-perplexity experiments ===
-        target_ids = input_ids_repeated.clone()
-        trg_len += shifts[0]
-        target_ids[:, :-trg_len] = -100
+        # target_ids = input_ids_repeated.clone()
+        # trg_len += shifts[0]
+        # target_ids[:, :-trg_len] = -100
         # === Only comment when used for non-perplexity experiments ===
 
         position_ids = attention_mask.long().cumsum(-1) - 1
@@ -576,19 +847,37 @@ class GPT2Wrapper(GenerativeLMWrapper):
             )
 
         # === When used for non-perplexity experiments ===
-        # return lm_logits, input_ids_repeated
+        return lm_logits, input_ids_repeated
         # === When used for non-perplexity experiments ===
 
-        batch_size = lm_logits.shape[0] // (1 + len(debiasing_prefixes))
-        lm_logits = lm_logits[:batch_size, shifts[0] :, :]
-        target_ids = target_ids[:batch_size, shifts[0] :]
+        # batch_size = lm_logits.shape[0] // (1 + len(debiasing_prefixes))
+        # lm_logits = lm_logits[:batch_size, shifts[0] :, :]
+        # target_ids = target_ids[:batch_size, shifts[0] :]
 
-        # Shift so that tokens < n predict n
-        shift_logits = lm_logits[..., :-1, :].contiguous()
-        shift_labels = target_ids[..., 1:].contiguous()
-        # Flatten the tokens
-        loss_fct = CrossEntropyLoss()
-        loss = loss_fct(
-            shift_logits.view(-1, shift_logits.size(-1)), shift_labels.view(-1)
-        )
-        return loss
+        # # Shift so that tokens < n predict n
+        # shift_logits = lm_logits[..., :-1, :].contiguous()
+        # shift_labels = target_ids[..., 1:].contiguous()
+        # # Flatten the tokens
+        # loss_fct = CrossEntropyLoss()
+        # loss = loss_fct(
+        #     shift_logits.view(-1, shift_logits.size(-1)), shift_labels.view(-1)
+        # )
+        # return loss
+
+
+if __name__ == "__main__":
+
+    # model = SelfDebiasGenerativeLM(model_class=GPT2LMHeadModel,model_name='gpt2', use_cuda=False)
+    # model_2 = GPT2Wrapper(model_name='gpt2', use_cuda=False)
+    # model = SelfDebiasing.from_pretrained('gpt2')
+    # print(type(model._model))
+    # print(type(model._model))
+    # output = model.generate_self_debiasing(['The man was a muslim'], [DEBIASING_PREFIXES["religion"]])
+    # print(output)
+    # output1 = model.generate_self_debiasing(['The man was a muslim'], [])
+    # print(output1)
+    # print(type(GPT2LMHeadModel.from_pretrained('gpt2')))
+    # print(type(AutoModelForCausalLM.from_pretrained('gpt2')))
+    # print(type(model._model))
+    # print(model.generate_self_debiasing(['He is an Arab from the Middle East.'], debiasing_prefixe='religion', max_length=30))
+    # print(model_2.generate_self_debiasing(['He is an Arab from the Middle East.'], debiasing_prefixes=[DEBIASING_PREFIXES['religion']], max_length=30))
