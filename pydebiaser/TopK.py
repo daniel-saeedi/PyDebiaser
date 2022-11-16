@@ -10,8 +10,6 @@ class TopK:
         self.classifier_unbiased = Detoxify('unbiased')
         self.model = model
         self.tokenizer = tokenizer
-        if self.tokenizer.pad_token is None:
-            self.tokenizer.add_special_tokens({'pad_token': '[PAD]'})
         # self.bias_swap = BiasSwapping()
         # self.prepend_adj = PrependAdj()
         # self.character_neutralization = CharacterNeutralization()
