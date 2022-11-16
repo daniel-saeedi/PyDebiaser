@@ -1,7 +1,23 @@
 <p align="center">
   <img src="https://raw.githubusercontent.com/daniel-saeedi/PyDebiaser/main/PyDebiaser.png" />
+  <br><br>
 </p>
+
+<p align="center">
+  <b>Contributors:</b>Daniel Saeedi and Kunwar Saaim
+</p>
+
+<p align="center">
+  <b>Mentor:</b> Abubakar Abid
+</p>
+
+<p align="center">
+  Part of the <a href="https://www.fatimafellowship.com/">Fatima Fellowship</a> research
+</p>
+
 <hr>
+
+
 
 PyDebiaser is a Python package that provides 7 debiasing techniques:
 - **Self-Debias:** leverages a model’s internal knowledge to discourage it from generating biased text. [Paper]([https://arxiv.org/abs/2007.08100](https://arxiv.org/abs/2103.00453))
@@ -133,5 +149,16 @@ debiaser = PrependAdj(model,tokenizer)
 ```
 debiaser.generate(prompt,max_len)
 ```
+
+
+## Acknowledgements
+We want to convey our heartfelt gratitude to
+Prof. Yadollah Yaghoobzadeh from the University
+of Tehran, who provided us with invaluable advice
+during our research. We would also like to thank
+Ali Edalat from the University of Tehran, who provided
+us with the initial proposals for resolving the
+dataset’s imbalance problem.
+
 
 
