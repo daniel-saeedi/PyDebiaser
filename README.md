@@ -20,8 +20,8 @@
 
 
 PyDebiaser is a Python package that provides 7 debiasing techniques:
-- **Self-Debias:** leverages a model’s internal knowledge to discourage it from generating biased text. [Paper]([https://arxiv.org/abs/2007.08100](https://arxiv.org/abs/2103.00453))
-- **Sent-Debias:** Extended Hard-Debias, a word embedding debiasing technique. [Paper](https://arxiv.org/abs/2007.08100)
+- **Sent-Debias:** Extended Hard-Debias, a word embedding debiasing technique. You can try out this technique [here](https://huggingface.co/spaces/Daniel-Saeedi/sent-debias). [Paper](https://arxiv.org/abs/2007.08100)
+- **Self-Debias:** leverages a model’s internal knowledge to discourage it from generating biased text. [Paper](https://arxiv.org/abs/2103.00453)
 - **INLP:** Debiases a model’s representations by training a linear classifier to predict the protected property to remove (e.g., gender). [Paper](https://arxiv.org/abs/2004.07667)
 - **Top-k:** Generates k different texts and selects the least toxic one using Detoxifier.
 - **Bias-Swapping:** This technique swaps words pairs such as "she" with "he", "muslim" with "christian", and etc in the prompt.
