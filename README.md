@@ -12,7 +12,7 @@
 </p>
 
 <p align="center">
-  Part of the <a href="https://www.fatimafellowship.com/">Fatima Fellowship</a> research
+  This work has been done as part of the <a href="https://www.fatimafellowship.com/">Fatima Fellowship</a>
 </p>
 
 <hr>
