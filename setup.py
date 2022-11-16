@@ -28,3 +28,6 @@ setup(
     ],
     include_package_data=True
 )
+
+import nltk
+nltk.download('punkt')
