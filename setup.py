@@ -13,7 +13,7 @@ setup(
     author_email="saeedi.danial@gmail.com",
     url="https://github.com/daniel-saeedi/PyDebiaser",
     python_requires='>=3.7, <4',
-    packages=find_packages(include=['PyDebiaser', 'PyDebiaser.*']),
+    packages=find_packages(include=['pydebiaser', 'pydebiaser.*']),
     install_requires=[
         'detoxifier >= 0.2',
         "transformers != 4.18.0",
