@@ -10,9 +10,9 @@ class TopK:
         self.classifier_unbiased = Detoxify('unbiased')
         self.model = model
         self.tokenizer = tokenizer
-        self.bias_swap = BiasSwapping()
-        self.prepend_adj = PrependAdj()
-        self.character_neutralization = CharacterNeutralization()
+        # self.bias_swap = BiasSwapping()
+        # self.prepend_adj = PrependAdj()
+        # self.character_neutralization = CharacterNeutralization()
 
     '''
     * max_len: The length of generated text
