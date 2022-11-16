@@ -20,5 +20,5 @@ class SelfDebias:
     def generate(self,prompt,max_len):
         debiased_output = self.model.generate_self_debiasing([prompt], debiasing_prefixe=self.bias_type, max_length=max_len)
 
-        return prompt + debiased_output
+        return prompt + ' '.join(debiased_output)
     
