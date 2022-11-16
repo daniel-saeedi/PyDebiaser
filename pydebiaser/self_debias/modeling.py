@@ -865,7 +865,7 @@ class GPT2Wrapper(GenerativeLMWrapper):
         # return loss
 
 
-if __name__ == "__main__":
+# if __name__ == "__main__":
 
     # model = SelfDebiasGenerativeLM(model_class=GPT2LMHeadModel,model_name='gpt2', use_cuda=False)
     # model_2 = GPT2Wrapper(model_name='gpt2', use_cuda=False)
