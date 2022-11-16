@@ -14,7 +14,7 @@ class SelfDebias:
     def __init__(self,model_name_or_path,bias_type):
         self.model_name_or_path = model_name_or_path
         self.bias_type = bias_type
-        model = SelfDebiasGenerativeLM(model_class=GPT2LMHeadModel, model_name_or_path=self.model_name_or_path, use_cuda=False)
+        self.model = SelfDebiasGenerativeLM(model_class=GPT2LMHeadModel, model_name_or_path=self.model_name_or_path, use_cuda=False)
 
     
     def generate(self,prompt,max_len):
