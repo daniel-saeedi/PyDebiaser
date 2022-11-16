@@ -32,7 +32,7 @@ PyDebiaser is a Python package that provides 7 debiasing techniques:
 Run this command to install PyDebiaser:
 > !git clone https://github.com/daniel-saeedi/PyDebiaser.git
 > 
-> !cd /content/PyDebiaser && pip install .
+> !cd PyDebiaser && pip install .
 
 ## Self-Debias
 Run this code to debias:
