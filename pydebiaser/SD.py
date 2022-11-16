@@ -68,7 +68,8 @@ class SentDebias:
             # Saving the tokenizer
             tokenizer = AutoTokenizer.from_pretrained(self.args['model_name_or_path'])
             tokenizer.save_pretrained(path)
-
+        
+        print("Debiasing is done!")
         return model
 
     def compute_bias_subspace(self):
