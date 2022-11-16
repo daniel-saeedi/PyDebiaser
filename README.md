@@ -4,11 +4,11 @@
 </p>
 
 <p align="center">
-  <b>Contributors:</b>Daniel Saeedi and Kunwar Saaim
+  <b>Contributors:</b> <a href="https://daniel-saeedi.github.io/">Daniel Saeedi</a> and <a href="https://github.com/kunwarsaaim/">Kunwar M. Saaim</a>
 </p>
 
 <p align="center">
-  <b>Mentor:</b> Abubakar Abid
+  <b>Mentor:</b> <a href="https://abidlabs.github.io/">Abubakar Abid</a>
 </p>
 
 <p align="center">
