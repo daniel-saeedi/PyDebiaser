@@ -8,9 +8,9 @@ import transformers
 from transformers import GPT2TokenizerFast
 from datasets import load_dataset
 
-from bias_bench.model import models
-from bias_bench.debias.self_debias.modeling import GPT2Wrapper
-from bias_bench.debias.self_debias.self_debiasing import (
+from pydebiaser.model import models
+from pydebiaser.debias.self_debias.modeling import GPT2Wrapper
+from pydebiaser.debias.self_debias.self_debiasing import (
     DEBIASING_PREFIXES,
     DEBIASING_KEYWORDS,
 )

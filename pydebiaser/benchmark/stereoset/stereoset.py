@@ -5,7 +5,7 @@ import torch
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 
-from bias_bench.benchmark.stereoset import dataloader
+from pydebiaser.benchmark.stereoset import dataloader
 
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")

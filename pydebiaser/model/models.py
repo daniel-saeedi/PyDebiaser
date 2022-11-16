@@ -3,8 +3,8 @@ from functools import partial
 import torch
 import transformers
 
-from bias_bench.debias.self_debias.modeling import GPT2Wrapper
-from bias_bench.debias.self_debias.modeling import MaskedLMWrapper
+from pydebiaser.debias.self_debias.modeling import GPT2Wrapper
+from pydebiaser.debias.self_debias.modeling import MaskedLMWrapper
 
 
 class BertModel:

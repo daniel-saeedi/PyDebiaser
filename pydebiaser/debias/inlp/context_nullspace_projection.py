@@ -4,7 +4,7 @@ from sklearn.svm import LinearSVC
 import torch
 from tqdm import tqdm
 
-from bias_bench.debias.inlp import debias
+from pydebiaser.debias.inlp import debias
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 

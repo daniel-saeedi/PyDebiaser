@@ -4,10 +4,10 @@ import os
 import torch
 import transformers
 
-from bias_bench.dataset import load_inlp_data
-from bias_bench.debias.inlp import compute_projection_matrix
-from bias_bench.model import models
-from bias_bench.util import generate_experiment_id
+from pydebiaser.dataset import load_inlp_data
+from pydebiaser.debias.inlp import compute_projection_matrix
+from pydebiaser.model import models
+from pydebiaser.util import generate_experiment_id
 
 thisdir = os.path.dirname(os.path.realpath(__file__))
 parser = argparse.ArgumentParser(description="Computes the projection matrix for INLP.")

@@ -4,14 +4,14 @@ import os
 import torch
 import transformers
 
-from bias_bench.dataset import load_sentence_debias_data
-from bias_bench.debias import (
+from pydebiaser.dataset import load_sentence_debias_data
+from pydebiaser.debias import (
     compute_gender_subspace,
     compute_race_subspace,
     compute_religion_subspace,
 )
-from bias_bench.model import models
-from bias_bench.util import generate_experiment_id
+from pydebiaser.model import models
+from pydebiaser.util import generate_experiment_id
 
 thisdir = os.path.dirname(os.path.realpath(__file__))
 parser = argparse.ArgumentParser(

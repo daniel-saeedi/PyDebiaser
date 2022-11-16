@@ -5,9 +5,9 @@ import json
 import torch
 import transformers
 
-from bias_bench.benchmark.crows import CrowSPairsRunner
-from bias_bench.model import models
-from bias_bench.util import generate_experiment_id, _is_generative, _is_self_debias
+from pydebiaser.benchmark.crows import CrowSPairsRunner
+from pydebiaser.model import models
+from pydebiaser.util import generate_experiment_id, _is_generative, _is_self_debias
 
 thisdir = os.path.dirname(os.path.realpath(__file__))
 parser = argparse.ArgumentParser(description="Runs CrowS-Pairs benchmark.")

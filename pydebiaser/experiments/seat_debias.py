@@ -5,9 +5,9 @@ import os
 import torch
 import transformers
 
-from bias_bench.benchmark.seat import SEATRunner
-from bias_bench.model import models
-from bias_bench.util import generate_experiment_id
+from pydebiaser.benchmark.seat import SEATRunner
+from pydebiaser.model import models
+from pydebiaser.util import generate_experiment_id
 
 
 thisdir = os.path.dirname(os.path.realpath(__file__))

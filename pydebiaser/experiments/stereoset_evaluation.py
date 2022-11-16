@@ -7,7 +7,7 @@ import re
 
 import numpy as np
 
-from bias_bench.benchmark.stereoset import dataloader
+from pydebiaser.benchmark.stereoset import dataloader
 
 
 thisdir = os.path.dirname(os.path.realpath(__file__))

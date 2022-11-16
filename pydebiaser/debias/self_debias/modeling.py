@@ -15,7 +15,7 @@ from transformers import (
     AlbertForMaskedLM,
 )
 
-from bias_bench.debias.self_debias.generation import (
+from pydebiaser.debias.self_debias.generation import (
     SelfDebiasingLogitsProcessor,
     SelfDebiasingGPT2LMHeadModel,
     SelfDebiasingT5ForConditionalGeneration,

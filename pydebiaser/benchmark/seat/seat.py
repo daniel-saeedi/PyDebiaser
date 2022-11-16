@@ -6,7 +6,7 @@ import re
 import numpy as np
 import torch
 
-from bias_bench.benchmark.seat import weat
+from pydebiaser.benchmark.seat import weat
 
 
 class SEATRunner:
