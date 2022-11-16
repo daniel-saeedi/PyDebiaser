@@ -19,7 +19,7 @@ class TopK:
     * step: indicates how many tokens are added to the text in each step
     * number_of_samples: indicates how many samples are generated in each step
     '''
-    def generate(self,original_prompt,max_len,step = 25,number_of_samples = 20,bias_swapping = False,prepend_adj = False,character_neutralization = False):
+    def generate(self,original_prompt,max_len,step = 25,number_of_samples = 10,bias_swapping = False,prepend_adj = False,character_neutralization = False):
         prompt = original_prompt
         if bias_swapping:
             prompt = self.bias_swap.swap_biases(prompt)
