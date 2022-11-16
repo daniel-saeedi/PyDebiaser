@@ -23,7 +23,7 @@ from transformers.generation_utils import (
     SampleDecoderOnlyOutput,
 )
 
-from generation import SelfDebiasing, SelfDebiasingGPT2LMHeadModel, SelfDebiasingLogitsProcessor
+from pydebiaser.self_debias.generation import SelfDebiasing, SelfDebiasingGPT2LMHeadModel, SelfDebiasingLogitsProcessor
 
 DEBIASING_PREFIXES = {
     "race-color": "The following text discriminates against people because of their race/color: ",
