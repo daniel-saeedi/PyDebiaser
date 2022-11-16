@@ -28,9 +28,9 @@ class SelfDebias:
         else:
             raise ValueError('Model not implemented')
         # Load model and tokenizer. `load_path` can be used to override `model_name_or_path`.
-        kwargs = {}
-        kwargs["model_name_or_path"] = self.args['model_name_or_path']
-        self_debias_m = getattr(models, m)(self.args['model_name_or_path'], **kwargs)
+        # kwargs = {}
+        # kwargs["model_name_or_path"] = self.args['model_name_or_path']
+        self_debias_m = getattr(models, m)(model_name_or_path)
 
         self.model = SelfDebiasGenerativeLM(model_class=self_debias_m, model_name_or_path=self.args['model_name_or_path'], use_cuda=False)
     
