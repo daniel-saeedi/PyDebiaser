@@ -2,7 +2,7 @@ import numpy as np
 import pydebiaser
 import os
 from transformers import GPT2LMHeadModel
-from pydebiaser.self_debias import SelfDebiasGenerativeLM
+from pydebiaser.self_debias.modeling import SelfDebiasGenerativeLM
 
 class SelfDebias:
     '''
