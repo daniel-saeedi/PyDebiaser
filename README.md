@@ -72,17 +72,20 @@ model = debiaser.debias(save=True,path = '/content/result/debiased/')
 - Optional: `save` and `path` parameters are used for saving the model.
 
 ## Sent-Debias
+S. Liang et al. (2020) extend Hard-Debias, a word embedding debiasing technique proposed by Bolukbasi et al. (2016) to sentence representations. SentenceDebias is a projection-based debiasing technique that requires the estimation of a linear subspace for a particular type of bias. Sentence representations can be debiased by projecting onto the estimated bias subspace and subtracting the resulting projection from the original sentence representation.
+
+
 Run this code to debias:
 ```
 from pydebiaser.SentDebias import SentDebias
 debiaser = SentDebias('BertModel','bert-base-uncased','gender')
-debiaser = SentDebias(model,model_name_or_path,bias_type)
+debiaser = SentDebias(model,model_name_or_path,bias_types)
 ```
 - **model names:** ["BertModel", "AlbertModel", "RobertaModel", "GPT2Model"]
 - **model_name_or_path**: huggingface model name or path to model
-- **bias_type:** Here you have to choose between `gender`, `religion` or `race`.
+- **bias_types:** Here you have to pass a list of biases that you want to remove, for instance: `["gender","religion","race"]`.
 
-**Note:** You can debias any pretrained Bert, Albert, Robert, or GPT2 like models.
+**Note:** You can debias any pretrained Bert, Albert, Robert, or GPT2 like models. 
 
 And finally debias the model using the following code:
 ```
