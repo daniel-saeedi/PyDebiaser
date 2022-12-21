@@ -52,24 +52,30 @@ debiaser.generate(prompt,max_len)
 
 
 ## INLP
+Ravfogel et al. (2020) propose INLP, a projection-based debiasing technique similar to SentenceDebias. Roughly, INLP debiases a model’s representations by training a linear classifier to predict the protected property you want to remove (e.g., gender) from the representations. Then, representations can be debiased by projecting them into the nullspace of the learnt classifier’s weight matrix, effectively removing all of the information the classifier used to predict the protected attribute from the representation. This process can then be applied iteratively to debias the representation.
+
+
 Run this code to debias:
 ```
 from pydebiaser.INLP import INLP
-debiaser = INLP('BertModel','bert-base-uncased','gender')
 debiaser = INLP(model,model_name_or_path,bias_type)
+model = debiaser.debias(save=True,path = '/content/result/debiased/')
 ```
 - **model names:** ["BertModel", "AlbertModel", "RobertaModel", "GPT2Model"]
 - **model_name_or_path**: huggingface model name or path to model
-- **bias_type:** Here you have to choose between `gender`, `religion` or `race`.
+- **bias_types:** Here you have to pass a list of biases that you want to remove, for instance: `["gender","religion","race"]`.
 
 **Note:** You can debias any pretrained Bert, Albert, Robert, or GPT2 like models.
 
-And finally debias the model using the following code:
-```
-model = debiaser.debias(save=True,path = '/content/result/debiased/')
-```
 - debias method returns the debiased model. 
 - Optional: `save` and `path` parameters are used for saving the model.
+
+**Example:**
+```
+from pydebiaser.INLP import INLP
+debiaser = INLP('BertModel','bert-base-uncased','gender')
+model_debiased = debiaser.debias(save=True,path = '/content/result/debiased/')
+```
 
 ## Sent-Debias
 S. Liang et al. (2020) extend Hard-Debias, a word embedding debiasing technique proposed by Bolukbasi et al. (2016) to sentence representations. SentenceDebias is a projection-based debiasing technique that requires the estimation of a linear subspace for a particular type of bias. Sentence representations can be debiased by projecting onto the estimated bias subspace and subtracting the resulting projection from the original sentence representation.
@@ -78,8 +84,8 @@ S. Liang et al. (2020) extend Hard-Debias, a word embedding debiasing technique 
 Run this code to debias:
 ```
 from pydebiaser.SentDebias import SentDebias
-debiaser = SentDebias('BertModel','bert-base-uncased','gender')
 debiaser = SentDebias(model,model_name_or_path,bias_types)
+model = debiaser.debias(save=True,path = '/content/result/debiased/')
 ```
 - **model names:** ["BertModel", "AlbertModel", "RobertaModel", "GPT2Model"]
 - **model_name_or_path**: huggingface model name or path to model
@@ -87,12 +93,16 @@ debiaser = SentDebias(model,model_name_or_path,bias_types)
 
 **Note:** You can debias any pretrained Bert, Albert, Robert, or GPT2 like models. 
 
-And finally debias the model using the following code:
-```
-model = debiaser.debias(save=True,path = '/content/result/debiased/')
-```
+from pydebiaser.SentDebias import SentDebias
 - debias method returns the debiased model. 
 - Optional: `save` and `path` parameters are used for saving the model.
+
+**Example:**
+```
+from pydebiaser.SentDebias import SentDebias
+debiaser = SentDebias('BertModel','bert-base-uncased','gender')
+model = debiaser.debias(save=True,path = '/content/result/debiased/')
+```
 
 ## Top-k
 Top-k is an inference text generation method that generates k different texts up to l tokens in length from a prompt and then select the least toxic text using Detoxify.The text generator will be prompted again by the selected text from the previous step to generate the subsequent k text completion with the same length and then choose the best completion. This process continues until we have the desired text length. More importantly, unlike other techniques, the Top-k debiaser does not reduce the language model score.
