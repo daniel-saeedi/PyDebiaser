@@ -24,7 +24,8 @@ setup(
         "nltk==3.7.0",
         "datasets==1.18.3",
         "accelerate==0.5.1",
-        "wget"
+        "wget",
+        "gitpython"
     ],
     include_package_data=True
 )
