@@ -30,6 +30,7 @@ class SentDebias:
         # self.args['bias_type'] = bias_type
         self.args['batch_size'] = batch_size
         self.bias_types = bias_types
+        self.model_name_or_path = model_name_or_path
 
         print("Downloading wikipedia-2.5.txt ....")
         data_dir = self.args['persistent_dir']+"/data/text/"
@@ -46,8 +47,10 @@ class SentDebias:
             self.args['bias_type'] = bias_type
             if not isFirstBiasType: 
                 self.args['model_name_or_path'] = path
+                isFirstBiasType = False
             model = self.sent_debias(True,path)
-        
+
+        self.args['model_name_or_path'] = self.model_name_or_path
         return model
     # path: where do you wanna save it
     def sent_debias(self,save = False,path = './'):
