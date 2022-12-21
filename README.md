@@ -105,7 +105,7 @@ model = debiaser.debias(save=True,path = '/content/result/debiased/')
 ```
 
 ## Top-k
-Top-k is an inference text generation method that generates k different texts up to l tokens in length from a prompt and then select the least toxic text using Detoxify.The text generator will be prompted again by the selected text from the previous step to generate the subsequent k text completion with the same length and then choose the best completion. This process continues until we have the desired text length. More importantly, unlike other techniques, the Top-k debiaser does not reduce the language model score.
+Top-k is an inference text generation method that generates `k` different texts up to `l` tokens in length from a prompt and then select the least toxic text using Detoxify.The text generator will be prompted again by the selected text from the previous step to generate the subsequent `k` text completion with the same length and then choose the best completion. This process continues until we have the desired text length. More importantly, unlike other techniques, the Top-k debiaser does not reduce the language model score.
 
 
 Run this code to debias:
