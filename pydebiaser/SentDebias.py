@@ -1,8 +1,6 @@
 import torch
 import transformers
 import pydebiaser, os
-import wget
-import git
 import shutil
 from pathlib import Path
 
@@ -36,18 +34,9 @@ class SentDebias:
 
         print("Downloading wikipedia-2.5.txt ....")
         data_dir = self.args['persistent_dir']+"/data/text/"
-        Path(data_dir).mkdir(parents=True, exist_ok=True)
-        try:
-            git.Git(data_dir).clone("https://huggingface.co/datasets/Daniel-Saeedi/wikipedia")
-            source_dir = data_dir+'wikipedia/'
-            target_dir = data_dir
-                
-            file_names = os.listdir(source_dir)
-                
-            for file_name in file_names:
-                shutil.move(os.path.join(source_dir, file_name), target_dir)
-        except:
-            pass
+        # Path(data_dir).mkdir(parents=True, exist_ok=True)
+        shutil.rmtree(data_dir, ignore_errors=True)
+        print(os.system("git clone https://huggingface.co/datasets/Daniel-Saeedi/wikipedia "+data_dir))
         
         print("Done!")
 
@@ -103,7 +92,6 @@ class SentDebias:
         
         print("Debiasing is done!")
         return model
-
     def compute_bias_subspace(self):
         print("Computing bias subspace:")
         print(f" - result_dir: {self.args['persistent_dir']}")
