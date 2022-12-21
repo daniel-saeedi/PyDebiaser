@@ -91,26 +91,6 @@ model = debiaser.debias(save=True,path = '/content/result/debiased/')
 - debias method returns the debiased model. 
 - Optional: `save` and `path` parameters are used for saving the model.
 
-## Sent-Debias
-Run this code to debias:
-```
-from pydebiaser.SentDebias import SentDebias
-debiaser = SentDebias('BertModel','bert-base-uncased','gender')
-debiaser = SentDebias(model,model_name_or_path,bias_type)
-```
-- **model names:** ["BertModel", "AlbertModel", "RobertaModel", "GPT2Model"]
-- **model_name_or_path**: huggingface model name or path to model
-- **bias_type:** Here you have to choose between `gender`, `religion` or `race`.
-
-**Note:** You can debias any pretrained Bert, Albert, Robert, or GPT2 like models.
-
-And finally debias the model using the following code:
-```
-model = debiaser.debias(save=True,path = '/content/result/debiased/')
-```
-- debias method returns the debiased model. 
-- Optional: `save` and `path` parameters are used for saving the model.
-
 ## Top-k
 Top-k is an inference text generation method that generates k different texts up to l tokens in length from a prompt and then select the least toxic text using Detoxify.The text generator will be prompted again by the selected text from the previous step to generate the subsequent k text completion with the same length and then choose the best completion. This process continues until we have the desired text length. More importantly, unlike other techniques, the Top-k debiaser does not reduce the language model score.
 
