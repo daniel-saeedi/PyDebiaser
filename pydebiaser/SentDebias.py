@@ -37,14 +37,18 @@ class SentDebias:
         print("Downloading wikipedia-2.5.txt ....")
         data_dir = self.args['persistent_dir']+"/data/text/"
         Path(data_dir).mkdir(parents=True, exist_ok=True)
-        git.Git(data_dir).clone("https://huggingface.co/datasets/Daniel-Saeedi/wikipedia")
-        source_dir = data_dir+'wikipedia/'
-        target_dir = data_dir
-            
-        file_names = os.listdir(source_dir)
-            
-        for file_name in file_names:
-            shutil.move(os.path.join(source_dir, file_name), target_dir)
+        try:
+            git.Git(data_dir).clone("https://huggingface.co/datasets/Daniel-Saeedi/wikipedia")
+            source_dir = data_dir+'wikipedia/'
+            target_dir = data_dir
+                
+            file_names = os.listdir(source_dir)
+                
+            for file_name in file_names:
+                shutil.move(os.path.join(source_dir, file_name), target_dir)
+        except:
+            pass
+        
         print("Done!")
 
     
@@ -54,10 +58,11 @@ class SentDebias:
         model = None
         for bias_type in self.bias_types:
             self.args['bias_type'] = bias_type
+            model = self.sent_debias(True,path)
+
             if not isFirstBiasType: 
                 self.args['model_name_or_path'] = path
                 isFirstBiasType = False
-            model = self.sent_debias(True,path)
 
         self.args['model_name_or_path'] = self.model_name_or_path
         return model
